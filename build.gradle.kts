@@ -38,6 +38,12 @@ dependencies {
     testRuntimeOnly ("org.junit.platform:junit-platform-launcher")
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 tasks {
     test {
         useJUnitPlatform()
