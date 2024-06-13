@@ -17,6 +17,8 @@
 plugins {
     id ("java-library")
     id ("groovy")
+    id ("jacoco")
+    id ("org.sonarqube") version "4.0.0.2929"
 }
 
 version = "0.1-SNAPSHOT"
@@ -38,5 +40,12 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
+        finalizedBy (jacocoTestReport)
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+        }
     }
 }
