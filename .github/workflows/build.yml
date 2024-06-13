@@ -5,6 +5,7 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
+      - '.teamcity/**'
       - 'README.adoc'
 
 jobs:
