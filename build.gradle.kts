@@ -35,6 +35,7 @@ dependencies {
     testImplementation (gradleApi())
     testImplementation ("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation ("org.hamcrest:hamcrest:2.2")
+    testRuntimeOnly ("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
