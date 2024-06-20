@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
 import static io.github.rodm.gradle.GradleMatchers.hasPlugin
 import static io.github.rodm.gradle.GradleMatchers.hasTask
 import static org.hamcrest.CoreMatchers.containsString
@@ -58,6 +59,29 @@ class GradleMatchersTest {
             assertThat(project, hasPlugin('example'))
         })
         assertThat(e.message, containsString('Project should have plugin "example"'))
+    }
+
+    @Test
+    void 'project does not have named configuration'() {
+        assertThat(project, not(hasConfiguration('demo')))
+    }
+
+    @Test
+    void 'project has named configuration'() {
+        project.configurations.create('demo')
+
+        assertThat(project, hasConfiguration('demo'))
+    }
+
+    @Test
+    void 'project without configuration throws exception'() {
+        project.configurations.create('example')
+
+        def e = assertThrows(AssertionError, {
+            assertThat(project, hasConfiguration('demo'))
+        })
+        assertThat(e.message, containsString('Project with a configuration called "demo"'))
+        assertThat(e.message, containsString('was ["example"]'))
     }
 
     @Test
