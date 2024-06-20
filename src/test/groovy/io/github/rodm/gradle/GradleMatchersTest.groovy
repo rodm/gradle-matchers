@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import static io.github.rodm.gradle.GradleMatchers.hasPlugin
 import static io.github.rodm.gradle.GradleMatchers.hasTask
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
@@ -35,6 +36,28 @@ class GradleMatchersTest {
     @BeforeEach
     void setup(@TempDir File projectDir) {
         project = ProjectBuilder.builder().withProjectDir(projectDir).build()
+    }
+
+    @Test
+    void 'project does not have named plugin'() {
+        assertThat(project, not(hasPlugin('example')))
+    }
+
+    @Test
+    void 'project has named plugin'() {
+        project.apply plugin: 'base'
+
+        assertThat(project, hasPlugin('base'))
+    }
+
+    @Test
+    void 'project without plugin throws exception'() {
+        project.apply plugin: 'base'
+
+        def e = assertThrows(AssertionError, () -> {
+            assertThat(project, hasPlugin('example'))
+        })
+        assertThat(e.message, containsString('Project should have plugin "example"'))
     }
 
     @Test

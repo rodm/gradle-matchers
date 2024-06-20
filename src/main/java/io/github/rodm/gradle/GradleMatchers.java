@@ -21,7 +21,28 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class GradleMatchers {
+
+    static Matcher<Project> hasPlugin(String id) {
+        return new TypeSafeDiagnosingMatcher<Project>() {
+            @Override
+            public void describeTo(final Description description) {
+                description.appendText("Project should have plugin ").appendValue(id).appendText(" applied");
+            }
+
+            @Override
+            protected boolean matchesSafely(final Project project, final Description mismatchDescription) {
+                List<String> classNames = project.getPlugins().stream()
+                    .map(plugin -> plugin.getClass().getSimpleName())
+                    .collect(Collectors.toList());
+                mismatchDescription.appendText(" was ").appendValueList("[", ", ", "]", classNames);
+                return project.getPluginManager().hasPlugin(id);
+            }
+        };
+    }
 
     public static Matcher<Project> hasTask(final String name) {
         return new TypeSafeDiagnosingMatcher<Project>() {
