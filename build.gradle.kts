@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+import org.jreleaser.model.Active.ALWAYS
+
 plugins {
     id ("java-library")
     id ("groovy")
     id ("jacoco")
+    id ("maven-publish")
+    id ("org.jreleaser") version "1.13.1"
     id ("org.sonarqube") version "4.0.0.2929"
 }
 
@@ -42,6 +46,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
     }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 tasks {
@@ -53,6 +59,74 @@ tasks {
     jacocoTestReport {
         reports {
             xml.required = true
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            pom {
+                name = "Gradle Matchers"
+                description = "A library of Hamcrest matchers to support testing Gradle plugins"
+                url = "https://github.com/rodm/gradle-matchers"
+
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "rodm"
+                        name = "Rod MacKenzie"
+                        email = "rod.n.mackenzie@gmail.com"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/rodm/gradle-matchers.git"
+                    developerConnection = "scm:git:ssh://github.com/rodm/gradle-matchers.git"
+                    url = "https://github.com/rodm/gradle-matchers"
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            setUrl(layout.buildDirectory.dir("staging-deploy"))
+        }
+    }
+}
+
+jreleaser {
+    project {
+        description = "A library of Hamcrest matchers to support testing Gradle plugins"
+        copyright = "2024 Rod MacKenzie"
+    }
+
+    signing {
+        active = ALWAYS
+        armored = true
+    }
+
+    deploy {
+        maven {
+            mavenCentral {
+                create("central") {
+                    active = ALWAYS
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository("build/staging-deploy")
+                }
+            }
+        }
+    }
+
+    release {
+        github {
+            skipRelease = true
         }
     }
 }
