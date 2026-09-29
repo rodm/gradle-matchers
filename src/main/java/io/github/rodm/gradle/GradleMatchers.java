@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 public class GradleMatchers {
 
-    static Matcher<Project> hasPlugin(String id) {
+    public static Matcher<Project> hasPlugin(String id) {
         return new TypeSafeDiagnosingMatcher<Project>() {
             @Override
             public void describeTo(final Description description) {
