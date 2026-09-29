@@ -1,0 +1,9 @@
+
+[plugins]
+jreleaser = { id = "org.jreleaser", version = "1.13.1" }
+sonarqube = { id = "org.sonarqube", version = "4.0.0.2929" }
+
+[libraries]
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version = "5.14.4" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }

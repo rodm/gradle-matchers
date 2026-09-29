@@ -21,8 +21,8 @@ plugins {
     id ("groovy")
     id ("jacoco")
     id ("maven-publish")
-    id ("org.jreleaser") version "1.13.1"
-    id ("org.sonarqube") version "4.0.0.2929"
+    alias (libs.plugins.jreleaser)
+    alias (libs.plugins.sonarqube)
 }
 
 version = "0.2-SNAPSHOT"
@@ -34,12 +34,12 @@ repositories {
 
 dependencies {
     compileOnly (gradleApi())
-    compileOnly ("org.hamcrest:hamcrest:2.2")
+    compileOnly (libs.hamcrest)
 
     testImplementation (gradleApi())
-    testImplementation ("org.junit.jupiter:junit-jupiter:5.10.2")
-    testImplementation ("org.hamcrest:hamcrest:2.2")
-    testRuntimeOnly ("org.junit.platform:junit-platform-launcher")
+    testImplementation (libs.junit.jupiter)
+    testImplementation (libs.hamcrest)
+    testRuntimeOnly (libs.junit.launcher)
 }
 
 java {
