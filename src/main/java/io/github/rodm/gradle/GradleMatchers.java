@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 
 public class GradleMatchers {
 
+    private GradleMatchers() {}
+
     public static Matcher<Project> hasPlugin(String id) {
         return new TypeSafeDiagnosingMatcher<Project>() {
             @Override
