@@ -30,6 +30,8 @@ public class GradleMatchers {
 
     private GradleMatchers() {}
 
+    private static final String TEXT = " was ";
+
     public static Matcher<Project> hasPlugin(String id) {
         return new TypeSafeDiagnosingMatcher<Project>() {
             @Override
@@ -42,7 +44,7 @@ public class GradleMatchers {
                 List<String> classNames = project.getPlugins().stream()
                     .map(plugin -> plugin.getClass().getSimpleName())
                     .collect(Collectors.toList());
-                mismatchDescription.appendText(" was ").appendValueList("[", ", ", "]", classNames);
+                mismatchDescription.appendText(TEXT).appendValueList("[", ", ", "]", classNames);
                 return project.getPluginManager().hasPlugin(id);
             }
         };
@@ -62,7 +64,7 @@ public class GradleMatchers {
                 List<String> configurationNames = configurations.stream()
                     .map(Named::getName)
                     .collect(Collectors.toList());
-                mismatchDescription.appendText(" was ").appendValueList("[", ",", "]", configurationNames);
+                mismatchDescription.appendText(TEXT).appendValueList("[", ",", "]", configurationNames);
                 return configurations.findByName(name) != null;
             }
         };
@@ -78,7 +80,7 @@ public class GradleMatchers {
             @Override
             protected boolean matchesSafely(final Project project, final Description mismatchDescription) {
                 TaskContainer tasks = project.getTasks();
-                mismatchDescription.appendText(" was ").appendValue(tasks.getNames());
+                mismatchDescription.appendText(TEXT).appendValue(tasks.getNames());
                 return tasks.findByName(name) != null;
             }
         };
