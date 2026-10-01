@@ -17,6 +17,7 @@ package io.github.rodm.gradle;
 
 import org.gradle.api.Named;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.hamcrest.Description;
@@ -70,6 +71,14 @@ public class GradleMatchers {
         };
     }
 
+    public static Matcher<Configuration> hasDependency(String group, String name, String version) {
+        return hasDependency(group + ":" + name + ":" + version);
+    }
+
+    public static Matcher<Configuration> hasDependency(String dependencyNotation) {
+        return new HasDependency(dependencyNotation);
+    }
+
     public static Matcher<Project> hasTask(final String name) {
         return new TypeSafeDiagnosingMatcher<Project>() {
             @Override
@@ -84,5 +93,32 @@ public class GradleMatchers {
                 return tasks.findByName(name) != null;
             }
         };
+    }
+
+    private static class HasDependency extends TypeSafeDiagnosingMatcher<Configuration> {
+
+        private final String dependencyNotation;
+
+        private HasDependency(String dependencyNotation) {
+            this.dependencyNotation = dependencyNotation;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("Configuration should contain dependency ").appendValue(dependencyNotation);
+        }
+
+        @Override
+        protected boolean matchesSafely(Configuration configuration, Description mismatchDescription) {
+            List<String> dependencies = getDependencies(configuration);
+            mismatchDescription.appendText(TEXT).appendValue(dependencies);
+            return dependencies.contains(dependencyNotation);
+        }
+
+        public List<String> getDependencies(Configuration configuration) {
+            return configuration.getDependencies().stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+        }
     }
 }

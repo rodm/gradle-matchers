@@ -17,12 +17,14 @@
 package io.github.rodm.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
+import static io.github.rodm.gradle.GradleMatchers.hasDependency
 import static io.github.rodm.gradle.GradleMatchers.hasPlugin
 import static io.github.rodm.gradle.GradleMatchers.hasTask
 import static org.hamcrest.CoreMatchers.containsString
@@ -82,6 +84,27 @@ class GradleMatchersTest {
         })
         assertThat(e.message, containsString('Project with a configuration called "demo"'))
         assertThat(e.message, containsString('was ["example"]'))
+    }
+
+    @Test
+    void 'configuration has a dependency'() {
+        project.apply plugin: 'java'
+        project.dependencies {
+            implementation ('org.example.group:artifact-api:1.2.3')
+            implementation ('org.example.group:artifact-impl:1.2.3')
+        }
+
+        Configuration configuration = project.configurations.getByName('implementation')
+        assertThat(configuration, hasDependency('org.example.group', 'artifact-api', '1.2.3'))
+        assertThat(configuration, hasDependency('org.example.group:artifact-impl:1.2.3'))
+    }
+
+    @Test
+    void 'configuration does not have a dependency'() {
+        project.apply plugin: 'java'
+
+        Configuration configuration = project.configurations.getByName('implementation')
+        assertThat(configuration, not(hasDependency('org.example.group:artifact:version')))
     }
 
     @Test
