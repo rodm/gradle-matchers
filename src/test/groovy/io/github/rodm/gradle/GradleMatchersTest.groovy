@@ -16,14 +16,17 @@
 
 package io.github.rodm.gradle
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
+import static io.github.rodm.gradle.GradleMatchers.hasDefaultDependency
 import static io.github.rodm.gradle.GradleMatchers.hasDependency
 import static io.github.rodm.gradle.GradleMatchers.hasPlugin
 import static io.github.rodm.gradle.GradleMatchers.hasTask
@@ -32,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.CoreMatchers.not
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@SuppressWarnings('ConfigurationAvoidance')
 class GradleMatchersTest {
 
     private Project project
@@ -108,12 +112,31 @@ class GradleMatchersTest {
     }
 
     @Test
+    void 'configuration has a default dependency'() {
+        project.apply plugin: TestPlugin
+
+        var configuration = project.configurations.getByName('example')
+        assertThat(configuration, hasDefaultDependency('org.example.group', 'artifact', 'version'))
+        assertThat(configuration, hasDefaultDependency('org.example.group:artifact:version'))
+    }
+
+    @Test
+    void 'configuration does not have a default dependency'() {
+        project.apply plugin: TestPlugin
+        project.dependencies {
+            example ('org.example.group:artifact:1.2.3')
+        }
+
+        Configuration configuration = project.configurations.getByName('example')
+        assertThat(configuration, not(hasDefaultDependency('org.example.group:artifact:version')))
+    }
+
+    @Test
     void 'project does not have named task'() {
         assertThat(project, not(hasTask('example')))
     }
 
     @Test
-    @SuppressWarnings('ConfigurationAvoidance')
     void 'project does have named task'() {
         project.task('example')
 
@@ -138,5 +161,18 @@ class GradleMatchersTest {
             assertThat(project, hasTask('example'))
         })
         assertThat(e.message, containsString('was <[task1, task2]>'))
+    }
+
+    private static class TestPlugin implements Plugin<Project> {
+        @Override
+        void apply(Project project) {
+            var configurations = project.getConfigurations();
+            configurations.maybeCreate('example')
+                .setDescription('Example configuration for testing.')
+                .defaultDependencies(dependencies -> {
+                    DependencyHandler handler = project.getDependencies();
+                    dependencies.add(handler.create('org.example.group:artifact:version'));
+                });
+        }
     }
 }

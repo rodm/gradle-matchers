@@ -79,6 +79,14 @@ public class GradleMatchers {
         return new HasDependency(dependencyNotation);
     }
 
+    public static Matcher<Configuration> hasDefaultDependency(String group, String name, String version) {
+        return hasDefaultDependency(group + ":" + name + ":" + version);
+    }
+
+    public static Matcher<Configuration> hasDefaultDependency(String dependencyNotation) {
+        return new HasDefaultDependency(dependencyNotation);
+    }
+
     public static Matcher<Project> hasTask(final String name) {
         return new TypeSafeDiagnosingMatcher<Project>() {
             @Override
@@ -115,8 +123,20 @@ public class GradleMatchers {
             return dependencies.contains(dependencyNotation);
         }
 
-        public List<String> getDependencies(Configuration configuration) {
+        List<String> getDependencies(Configuration configuration) {
             return configuration.getDependencies().stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+        }
+    }
+
+    private static class HasDefaultDependency extends HasDependency {
+        private HasDefaultDependency(String dependencyNotation) {
+            super(dependencyNotation);
+        }
+
+        List<String> getDependencies(Configuration configuration) {
+            return configuration.getIncoming().getDependencies().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList());
         }
