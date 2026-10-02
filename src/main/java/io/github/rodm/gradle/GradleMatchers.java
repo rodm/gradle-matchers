@@ -17,6 +17,7 @@ package io.github.rodm.gradle;
 
 import org.gradle.api.Named;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -99,6 +100,26 @@ public class GradleMatchers {
                 TaskContainer tasks = project.getTasks();
                 mismatchDescription.appendText(TEXT).appendValue(tasks.getNames());
                 return tasks.findByName(name) != null;
+            }
+        };
+    }
+
+    public static Matcher<Task> dependsOn(String name) {
+        return new TypeSafeDiagnosingMatcher<Task>() {
+            @Override
+            protected boolean matchesSafely(Task task, Description mismatchDescription) {
+                List<String> names = task.getTaskDependencies().getDependencies(task).stream()
+                    .map(Task::getName)
+                    .collect(Collectors.toList());
+                mismatchDescription
+                    .appendText("task dependencies are ")
+                    .appendValueList("[", ", ", "]", names);
+                return names.contains(name);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("a Task that depends on ").appendValue(name);
             }
         };
     }

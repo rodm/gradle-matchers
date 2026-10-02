@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import static io.github.rodm.gradle.GradleMatchers.dependsOn
 import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
 import static io.github.rodm.gradle.GradleMatchers.hasDefaultDependency
 import static io.github.rodm.gradle.GradleMatchers.hasDependency
@@ -161,6 +162,25 @@ class GradleMatchersTest {
             assertThat(project, hasTask('example'))
         })
         assertThat(e.message, containsString('was <[task1, task2]>'))
+    }
+
+    @Test
+    void 'task does not depend on another task'() {
+        var task1 = project.task('task1')
+        var task2 = project.task('task2')
+
+        assertThat(task1, not(dependsOn('task2')))
+        assertThat(task2, not(dependsOn('task1')))
+    }
+
+    @Test
+    void 'task does depend on another task'() {
+        var task1 = project.task('task1')
+        var task2 = project.task('task2')
+        task1.dependsOn('task2')
+
+        assertThat(task1, dependsOn('task2'))
+        assertThat(task2, not(dependsOn('task1')))
     }
 
     private static class TestPlugin implements Plugin<Project> {
