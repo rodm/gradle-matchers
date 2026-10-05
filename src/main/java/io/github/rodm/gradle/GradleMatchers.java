@@ -26,6 +26,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class GradleMatchers {
@@ -77,7 +78,7 @@ public class GradleMatchers {
     }
 
     public static Matcher<Configuration> hasDependency(String dependencyNotation) {
-        return new HasDependency(dependencyNotation);
+        return new HasDependency(dependencyNotation, dependencies);
     }
 
     public static Matcher<Configuration> hasDefaultDependency(String group, String name, String version) {
@@ -85,7 +86,7 @@ public class GradleMatchers {
     }
 
     public static Matcher<Configuration> hasDefaultDependency(String dependencyNotation) {
-        return new HasDefaultDependency(dependencyNotation);
+        return new HasDependency(dependencyNotation, defaultDependencies);
     }
 
     public static Matcher<Project> hasTask(final String name) {
@@ -144,12 +145,24 @@ public class GradleMatchers {
         };
     }
 
+    private static final Function<Configuration, List<String>> dependencies = (Configuration c) ->
+        c.getDependencies().stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
+
+    private static final Function<Configuration, List<String>> defaultDependencies = (Configuration c) ->
+        c.getIncoming().getDependencies().stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
+
     private static class HasDependency extends TypeSafeDiagnosingMatcher<Configuration> {
 
         private final String dependencyNotation;
+        private final Function<Configuration, List<String>> collector;
 
-        private HasDependency(String dependencyNotation) {
+        private HasDependency(String dependencyNotation, Function<Configuration, List<String>> collector) {
             this.dependencyNotation = dependencyNotation;
+            this.collector = collector;
         }
 
         @Override
@@ -159,27 +172,9 @@ public class GradleMatchers {
 
         @Override
         protected boolean matchesSafely(Configuration configuration, Description mismatchDescription) {
-            List<String> dependencies = getDependencies(configuration);
+            List<String> dependencies = collector.apply(configuration);
             mismatchDescription.appendText(TEXT).appendValue(dependencies);
             return dependencies.contains(dependencyNotation);
-        }
-
-        List<String> getDependencies(Configuration configuration) {
-            return configuration.getDependencies().stream()
-                .map(Object::toString)
-                .collect(Collectors.toList());
-        }
-    }
-
-    private static class HasDefaultDependency extends HasDependency {
-        private HasDefaultDependency(String dependencyNotation) {
-            super(dependencyNotation);
-        }
-
-        List<String> getDependencies(Configuration configuration) {
-            return configuration.getIncoming().getDependencies().stream()
-                .map(Object::toString)
-                .collect(Collectors.toList());
         }
     }
 }
