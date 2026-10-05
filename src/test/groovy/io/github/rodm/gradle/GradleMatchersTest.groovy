@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import static io.github.rodm.gradle.GradleMatchers.dependsOn
+import static io.github.rodm.gradle.GradleMatchers.finalizedBy
 import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
 import static io.github.rodm.gradle.GradleMatchers.hasDefaultDependency
 import static io.github.rodm.gradle.GradleMatchers.hasDependency
@@ -181,6 +182,25 @@ class GradleMatchersTest {
 
         assertThat(task1, dependsOn('task2'))
         assertThat(task2, not(dependsOn('task1')))
+    }
+
+    @Test
+    void 'task is not finalized by another task'() {
+        var task1 = project.task('task1')
+        var task2 = project.task('task2')
+
+        assertThat(task1, not(finalizedBy('task2')))
+        assertThat(task2, not(finalizedBy('task1')))
+    }
+
+    @Test
+    void 'task is finalized by another task'() {
+        var task1 = project.task('task1')
+        var task2 = project.task('task2')
+        task1.finalizedBy('task2')
+
+        assertThat(task1, finalizedBy('task2'))
+        assertThat(task2, not(finalizedBy('task1')))
     }
 
     private static class TestPlugin implements Plugin<Project> {

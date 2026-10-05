@@ -124,6 +124,26 @@ public class GradleMatchers {
         };
     }
 
+    public static Matcher<Task> finalizedBy(final String name) {
+        return new TypeSafeDiagnosingMatcher<Task>() {
+            @Override
+            protected boolean matchesSafely(Task task, Description mismatchDescription) {
+                List<String> names = task.getFinalizedBy().getDependencies(task).stream()
+                    .map(Task::getName)
+                    .collect(Collectors.toList());
+                mismatchDescription
+                    .appendText("task was finalized by ")
+                    .appendValueList("[", ", ", "]", names);
+                return names.contains(name);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("a Task that is finalized by ").appendValue(name);
+            }
+        };
+    }
+
     private static class HasDependency extends TypeSafeDiagnosingMatcher<Configuration> {
 
         private final String dependencyNotation;
