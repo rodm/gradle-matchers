@@ -173,7 +173,7 @@ public class GradleMatchers {
         @Override
         protected boolean matchesSafely(Configuration configuration, Description mismatchDescription) {
             List<String> dependencies = collector.apply(configuration);
-            mismatchDescription.appendText(TEXT).appendValue(dependencies);
+            mismatchDescription.appendText(TEXT).appendValueList("[", ", ", "]", dependencies);
             return dependencies.contains(dependencyNotation);
         }
     }

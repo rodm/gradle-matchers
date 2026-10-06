@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.testfixtures.ProjectBuilder
+import org.hamcrest.StringDescription
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -35,7 +36,6 @@ import static io.github.rodm.gradle.GradleMatchers.hasTask
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.CoreMatchers.not
-import static org.junit.jupiter.api.Assertions.assertThrows
 
 @SuppressWarnings('ConfigurationAvoidance')
 class GradleMatchersTest {
@@ -60,13 +60,17 @@ class GradleMatchersTest {
     }
 
     @Test
-    void 'project without plugin throws exception'() {
+    void 'hasPlugin matcher describes expectation and mismatch'() {
         project.apply plugin: 'base'
 
-        def e = assertThrows(AssertionError, () -> {
-            assertThat(project, hasPlugin('example'))
-        })
-        assertThat(e.message, containsString('Project should have plugin "example"'))
+        var description = new StringDescription()
+        hasPlugin('example').describeTo(description)
+        assertThat(description.toString(), containsString('Project should have plugin "example"'))
+
+        var mismatch = new StringDescription()
+        hasPlugin('example').describeMismatch(project, mismatch)
+        assertThat(mismatch.toString(), containsString('was ["LifecycleBasePlugin'))
+        assertThat(mismatch.toString(), containsString('"BasePlugin'))
     }
 
     @Test
@@ -82,14 +86,16 @@ class GradleMatchersTest {
     }
 
     @Test
-    void 'project without configuration throws exception'() {
+    void 'hasConfiguration matcher describes expectation and mismatch'() {
         project.configurations.create('example')
 
-        def e = assertThrows(AssertionError, {
-            assertThat(project, hasConfiguration('demo'))
-        })
-        assertThat(e.message, containsString('Project with a configuration called "demo"'))
-        assertThat(e.message, containsString('was ["example"]'))
+        var description = new StringDescription()
+        hasConfiguration('demo').describeTo(description)
+        assertThat(description.toString(), containsString('Project with a configuration called "demo"'))
+
+        var mismatch = new StringDescription()
+        hasConfiguration('demo').describeMismatch(project, mismatch)
+        assertThat(mismatch.toString(), containsString('was ["example"]'))
     }
 
     @Test
@@ -111,6 +117,21 @@ class GradleMatchersTest {
 
         Configuration configuration = project.configurations.getByName('implementation')
         assertThat(configuration, not(hasDependency('org.example.group:artifact:version')))
+    }
+
+    @Test
+    void 'hasDependency matcher describes expectation and mismatch'() {
+        project.apply plugin: 'java'
+        project.dependencies.implementation ('com.example:artifact:4.5.6')
+
+        var description = new StringDescription()
+        hasDependency('org.example.group:artifact:version').describeTo(description)
+        assertThat(description.toString(), containsString('Configuration should contain dependency "org.example.group:artifact:version"'))
+
+        var configuration = project.configurations.getByName('implementation')
+        var mismatch = new StringDescription()
+        hasDependency('org.example.group:artifact:version').describeMismatch(configuration, mismatch)
+        assertThat(mismatch.toString(), containsString('was ["com.example:artifact:4.5.6"]'))
     }
 
     @Test
@@ -146,23 +167,17 @@ class GradleMatchersTest {
     }
 
     @Test
-    void 'project without task throws exception'() {
-        def e = assertThrows(AssertionError, () -> {
-            assertThat(project, hasTask('example'))
-        })
-        assertThat(e.message, containsString('Project should have task "example"'))
-    }
-
-    @Test
-    @SuppressWarnings('ConfigurationAvoidance')
-    void 'project without task lists known tasks in exception'() {
+    void 'hasTask matcher describes expectation and mismatch'() {
         project.task('task1')
         project.task('task2')
 
-        def e = assertThrows(AssertionError, () -> {
-            assertThat(project, hasTask('example'))
-        })
-        assertThat(e.message, containsString('was <[task1, task2]>'))
+        var description = new StringDescription()
+        hasTask('example').describeTo(description)
+        assertThat(description.toString(), containsString('Project should have task "example"'))
+
+        var mismatch = new StringDescription()
+        hasTask('example').describeMismatch(project, mismatch)
+        assertThat(mismatch.toString(), containsString('was <[task1, task2]>'))
     }
 
     @Test
@@ -185,6 +200,22 @@ class GradleMatchersTest {
     }
 
     @Test
+    void 'dependsOn matcher describes expectation and mismatch'() {
+        var task1 = project.task('task1')
+        project.task('task2')
+        project.task('task3')
+        task1.dependsOn('task2')
+
+        var description = new StringDescription()
+        dependsOn('task3').describeTo(description)
+        assertThat(description.toString(), containsString('a Task that depends on "task3"'))
+
+        var mismatch = new StringDescription()
+        dependsOn('task3').describeMismatch(task1, mismatch)
+        assertThat(mismatch.toString(), containsString('task dependencies are ["task2"]'))
+    }
+
+    @Test
     void 'task is not finalized by another task'() {
         var task1 = project.task('task1')
         var task2 = project.task('task2')
@@ -201,6 +232,22 @@ class GradleMatchersTest {
 
         assertThat(task1, finalizedBy('task2'))
         assertThat(task2, not(finalizedBy('task1')))
+    }
+
+    @Test
+    void 'finalizedBy matcher describes expectation and mismatch'() {
+        var task1 = project.task('task1')
+        project.task('task2')
+        project.task('task3')
+        task1.finalizedBy('task2')
+
+        var description = new StringDescription()
+        finalizedBy('task3').describeTo(description)
+        assertThat(description.toString(), containsString('a Task that is finalized by "task3"'))
+
+        var mismatch = new StringDescription()
+        finalizedBy('task3').describeMismatch(task1, mismatch)
+        assertThat(mismatch.toString(), containsString('task was finalized by ["task2"]'))
     }
 
     private static class TestPlugin implements Plugin<Project> {
