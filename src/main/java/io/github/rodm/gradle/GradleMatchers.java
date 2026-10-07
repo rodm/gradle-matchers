@@ -15,6 +15,7 @@
  */
 package io.github.rodm.gradle;
 
+import io.github.rodm.gradle.internal.HasDependency;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -26,14 +27,13 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class GradleMatchers {
 
     private GradleMatchers() {}
 
-    private static final String TEXT = " was ";
+    public static final String TEXT = " was ";
 
     public static Matcher<Project> hasPlugin(String id) {
         return new TypeSafeDiagnosingMatcher<Project>() {
@@ -74,19 +74,19 @@ public class GradleMatchers {
     }
 
     public static Matcher<Configuration> hasDependency(String group, String name, String version) {
-        return hasDependency(group + ":" + name + ":" + version);
+        return HasDependency.hasDependency(group + ":" + name + ":" + version);
     }
 
     public static Matcher<Configuration> hasDependency(String dependencyNotation) {
-        return new HasDependency(dependencyNotation, dependencies);
+        return HasDependency.hasDependency(dependencyNotation);
     }
 
     public static Matcher<Configuration> hasDefaultDependency(String group, String name, String version) {
-        return hasDefaultDependency(group + ":" + name + ":" + version);
+        return HasDependency.hasDefaultDependency(group + ":" + name + ":" + version);
     }
 
     public static Matcher<Configuration> hasDefaultDependency(String dependencyNotation) {
-        return new HasDependency(dependencyNotation, defaultDependencies);
+        return HasDependency.hasDefaultDependency(dependencyNotation);
     }
 
     public static Matcher<Project> hasTask(final String name) {
@@ -143,38 +143,5 @@ public class GradleMatchers {
                 description.appendText("a Task that is finalized by ").appendValue(name);
             }
         };
-    }
-
-    private static final Function<Configuration, List<String>> dependencies = (Configuration c) ->
-        c.getDependencies().stream()
-            .map(Object::toString)
-            .collect(Collectors.toList());
-
-    private static final Function<Configuration, List<String>> defaultDependencies = (Configuration c) ->
-        c.getIncoming().getDependencies().stream()
-            .map(Object::toString)
-            .collect(Collectors.toList());
-
-    private static class HasDependency extends TypeSafeDiagnosingMatcher<Configuration> {
-
-        private final String dependencyNotation;
-        private final Function<Configuration, List<String>> collector;
-
-        private HasDependency(String dependencyNotation, Function<Configuration, List<String>> collector) {
-            this.dependencyNotation = dependencyNotation;
-            this.collector = collector;
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("Configuration should contain dependency ").appendValue(dependencyNotation);
-        }
-
-        @Override
-        protected boolean matchesSafely(Configuration configuration, Description mismatchDescription) {
-            List<String> dependencies = collector.apply(configuration);
-            mismatchDescription.appendText(TEXT).appendValueList("[", ", ", "]", dependencies);
-            return dependencies.contains(dependencyNotation);
-        }
     }
 }
