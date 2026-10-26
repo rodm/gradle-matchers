@@ -28,19 +28,19 @@ import java.util.stream.Collectors;
 public class HasDependency extends TypeSafeDiagnosingMatcher<Configuration> {
 
     public static Matcher<Configuration> hasDependency(String dependencyNotation) {
-        return new HasDependency(dependencyNotation, dependencies);
+        return new HasDependency(dependencyNotation, dependenciesCollector);
     }
 
     public static Matcher<Configuration> hasDefaultDependency(String dependencyNotation) {
-        return new HasDependency(dependencyNotation, defaultDependencies);
+        return new HasDependency(dependencyNotation, defaultDependenciesCollector);
     }
 
-    private static final Function<Configuration, List<String>> dependencies = (Configuration c) ->
+    private static final Function<Configuration, List<String>> dependenciesCollector = (Configuration c) ->
         c.getDependencies().stream()
             .map(Object::toString)
             .collect(Collectors.toList());
 
-    private static final Function<Configuration, List<String>> defaultDependencies = (Configuration c) ->
+    private static final Function<Configuration, List<String>> defaultDependenciesCollector = (Configuration c) ->
         c.getIncoming().getDependencies().stream()
             .map(Object::toString)
             .collect(Collectors.toList());
