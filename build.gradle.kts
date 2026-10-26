@@ -63,6 +63,8 @@ tasks {
     }
 }
 
+val stagingRepository = layout.buildDirectory.dir("staging-deploy")
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -96,7 +98,7 @@ publishing {
 
     repositories {
         maven {
-            setUrl(layout.buildDirectory.dir("staging-deploy"))
+            setUrl(stagingRepository)
         }
     }
 }
@@ -118,7 +120,7 @@ jreleaser {
                 create("central") {
                     active = ALWAYS
                     url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository("build/staging-deploy")
+                    stagingRepository(stagingRepository.get())
                 }
             }
         }
