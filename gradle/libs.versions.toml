@@ -1,6 +1,6 @@
 
 [plugins]
-jreleaser = { id = "org.jreleaser", version = "1.13.1" }
+jreleaser = { id = "org.jreleaser", version = "1.26.0" }
 sonarqube = { id = "org.sonarqube", version = "4.0.0.2929" }
 
 [libraries]
