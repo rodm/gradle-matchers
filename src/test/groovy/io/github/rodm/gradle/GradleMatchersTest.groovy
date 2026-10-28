@@ -16,8 +16,10 @@
 
 package io.github.rodm.gradle
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.testfixtures.ProjectBuilder
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.io.TempDir
 
 import static io.github.rodm.gradle.GradleMatchers.dependsOn
 import static io.github.rodm.gradle.GradleMatchers.finalizedBy
+import static io.github.rodm.gradle.GradleMatchers.hasAction
 import static io.github.rodm.gradle.GradleMatchers.hasConfiguration
 import static io.github.rodm.gradle.GradleMatchers.hasDefaultDependency
 import static io.github.rodm.gradle.GradleMatchers.hasDependency
@@ -250,6 +253,28 @@ class GradleMatchersTest {
         assertThat(mismatch.toString(), containsString('task was finalized by ["task2"]'))
     }
 
+    @Test
+    void 'task has an action of type'() {
+        var task = project.task('testtask')
+        task.doFirst(new TestAction())
+
+        assertThat(task, hasAction(TestAction))
+    }
+
+    @Test
+    void 'hasAction matcher describes expectation and mismatch'() {
+        var task = project.task('testtask')
+        task.doFirst(new TestAction())
+
+        var description = new StringDescription()
+        hasAction(TestAction).describeTo(description)
+        assertThat(description.toString(), containsString('Task should have an action of type "TestAction"'))
+
+        var mismatch = new StringDescription()
+        hasAction(TestAction).describeMismatch(task, mismatch)
+        assertThat(mismatch.toString(), containsString(' was ["' + TestAction.class.getName() + '"]'))
+    }
+
     private static class TestPlugin implements Plugin<Project> {
         @Override
         void apply(Project project) {
@@ -260,6 +285,13 @@ class GradleMatchersTest {
                     DependencyHandler handler = project.getDependencies();
                     dependencies.add(handler.create('org.example.group:artifact:version'));
                 });
+        }
+    }
+
+    private static class TestAction implements Action<Task> {
+        @Override
+        void execute(Task task) {
+            // ignore
         }
     }
 }

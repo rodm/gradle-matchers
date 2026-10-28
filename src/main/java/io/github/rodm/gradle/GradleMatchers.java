@@ -17,10 +17,12 @@ package io.github.rodm.gradle;
 
 import io.github.rodm.gradle.internal.DependsOn;
 import io.github.rodm.gradle.internal.FinalizedBy;
+import io.github.rodm.gradle.internal.HasAction;
 import io.github.rodm.gradle.internal.HasConfiguration;
 import io.github.rodm.gradle.internal.HasDependency;
 import io.github.rodm.gradle.internal.HasPlugin;
 import io.github.rodm.gradle.internal.HasTask;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -66,5 +68,9 @@ public class GradleMatchers {
 
     public static Matcher<Task> finalizedBy(final String name) {
         return FinalizedBy.finalizedBy(name);
+    }
+
+    public static Matcher<Task> hasAction(final Class<? super Action<Task>> type) {
+        return HasAction.hasAction(type);
     }
 }
