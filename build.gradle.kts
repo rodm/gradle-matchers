@@ -25,7 +25,7 @@ plugins {
     alias (libs.plugins.sonarqube)
 }
 
-version = "0.2"
+version = "0.3-SNAPSHOT"
 group = "io.github.rodm"
 
 repositories {
