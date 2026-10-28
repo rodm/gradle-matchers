@@ -47,8 +47,8 @@ public class HasAction extends TypeSafeDiagnosingMatcher<Task> {
     @Override
     protected boolean matchesSafely(Task task, Description mismatchDescription) {
         List<String> actionNames = task.getActions().stream()
-            .filter(action -> hasActionField(action))
-            .map(action -> unwrapAction(action).getClass().getName())
+            .filter(HasAction::hasActionField)
+            .map(HasAction::actionTypeName)
             .collect(Collectors.toList());
         mismatchDescription.appendText(TEXT).appendValueList("[", ", ", "]", actionNames);
         return actionNames.contains(type.getName());
@@ -57,6 +57,11 @@ public class HasAction extends TypeSafeDiagnosingMatcher<Task> {
     private static boolean hasActionField(final Action<? super Task> action) {
         // TaskActionWrapper stores the wrapped action in a field called 'action'
         return getActionField(action) != null;
+    }
+
+    private static String actionTypeName(final Action<? super Task> action) {
+        Action<? super Task> wrappedAction = unwrapAction(action);
+        return wrappedAction == null ? "" : wrappedAction.getClass().getName();
     }
 
     private static Action<? super Task> unwrapAction(final Action<? super Task> action) {
